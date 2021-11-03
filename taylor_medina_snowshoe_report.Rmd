@@ -14,12 +14,13 @@ library(lubridate)
 library(plotly)
 ```
 
+## Juvenile Hare Investigation
 ```{r}
 bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
 
 hare_trappings <- bonanza_hares %>% 
   mutate(date = mdy(date), # convert class of date column
-         year = year(date)) %>%  # splice out year
+         year = year(date)) %>% # splice out year
   group_by(year) %>% 
   summarize(trappings = n()) # get number of trappings per year
 ```
@@ -34,5 +35,56 @@ hare_plot <- ggplot(data = hare_trappings,
        y = "number of trappings")
 
 ggplotly(hare_plot)
+```
+
+```{r}
+hare_summary <- hare_trappings %>% 
+  summarize(mean_trap = mean(trappings),
+            sd_trap = sd(trappings),
+            median_trap = median(trappings),
+            max_trap = max(trappings),
+            min_trap = min(trappings))
+ 
+
+hare_summary %>% 
+kable(col.names = c("mean",
+                    "standard deviation",
+                    "median",
+                    "maximum",
+                    "minimum"),
+      caption = "Table 1: Statistical Summary of the number of trappings of Bonanza Hares from 1998-2012") %>% 
+kable_classic(full_width = FALSE)
+```
+
+## Visualizing Juvenile Hair Weights
+```{r}
+hare_weights <- bonanza_hares %>% 
+  group_by(sex, grid) %>% 
+  summarize(mean_weight = mean(weight, na.rm = TRUE),
+            sd_weight = sd(weight, na.rm = TRUE)) %>%
+  replace_na(list(x = "NA")) %>% # replace NA values
+  mutate(grid = case_when( # replace short names of sites with full names
+    grid == "bonbs" ~ "Bonanza Lowland",
+    grid == "bonmat" ~ "Bonanza Mature",
+    grid == "bonrip" ~ "Bonanza Riparian"))
+ 
+x_axis <- c("f", "m", "NA") # define x-axis labels since they are strings
+
+weight_plot <- ggplot(data = hare_weights,
+                      aes(x = sex, y = mean_weight)) +
+  geom_bar(stat = "identity", aes(fill = sex)) +
+  geom_errorbar(data = hare_weights, 
+                mapping = aes(x = sex, ymin = mean_weight - sd_weight, 
+                              ymax = mean_weight + sd_weight, size = 1, width = 0.2)) +
+  facet_wrap(~ grid) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,1)) +
+  scale_x_discrete(labels = x_axis) + # manually define x-axis
+  labs(x = "sex",
+       y = "mass (g)",
+       fill = "sex")
+  
+
+ggplotly(weight_plot)
 ```
 
