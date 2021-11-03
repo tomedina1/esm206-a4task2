@@ -8,5 +8,31 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
+library(here)
+library(kableExtra)
+library(lubridate)
+library(plotly)
+```
+
+```{r}
+bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
+
+hare_trappings <- bonanza_hares %>% 
+  mutate(date = mdy(date), # convert class of date column
+         year = year(date)) %>%  # splice out year
+  group_by(year) %>% 
+  summarize(trappings = n()) # get number of trappings per year
+```
+
+```{r}
+hare_plot <- ggplot(data = hare_trappings,
+                    aes(x = year, y = trappings)) +
+  geom_point() +
+  geom_line() +
+  theme_classic() +
+  labs(x = "year",
+       y = "number of trappings")
+
+ggplotly(hare_plot)
 ```
 
