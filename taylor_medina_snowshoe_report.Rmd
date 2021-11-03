@@ -12,6 +12,7 @@ library(here)
 library(kableExtra)
 library(lubridate)
 library(plotly)
+library(effsize)
 ```
 
 ## Juvenile Hare Investigation
@@ -56,26 +57,25 @@ kable(col.names = c("mean",
 kable_classic(full_width = FALSE)
 ```
 
-## Visualizing Juvenile Hair Weights
+## Visualizing Juvenile Hare Weights
 ```{r}
 hare_weights <- bonanza_hares %>% 
-  group_by(sex, grid) %>% 
+  group_by(grid, sex) %>% 
   summarize(mean_weight = mean(weight, na.rm = TRUE),
             sd_weight = sd(weight, na.rm = TRUE)) %>%
-  replace_na(list(x = "NA")) %>% # replace NA values
   mutate(grid = case_when( # replace short names of sites with full names
     grid == "bonbs" ~ "Bonanza Lowland",
     grid == "bonmat" ~ "Bonanza Mature",
     grid == "bonrip" ~ "Bonanza Riparian"))
  
-x_axis <- c("f", "m", "NA") # define x-axis labels since they are strings
+x_axis <- c("female", "male", "NA") # define x-axis labels since they are strings
 
 weight_plot <- ggplot(data = hare_weights,
                       aes(x = sex, y = mean_weight)) +
   geom_bar(stat = "identity", aes(fill = sex)) +
   geom_errorbar(data = hare_weights, 
                 mapping = aes(x = sex, ymin = mean_weight - sd_weight, 
-                              ymax = mean_weight + sd_weight, size = 1, width = 0.2)) +
+                              ymax = mean_weight + sd_weight, size = 0.2, width = 0.1)) +
   facet_wrap(~ grid) +
   theme_classic() +
   scale_y_continuous(expand = c(0,1)) +
@@ -87,4 +87,40 @@ weight_plot <- ggplot(data = hare_weights,
 
 ggplotly(weight_plot)
 ```
+
+## Statistics of Juvenile Hare Weights
+```{r}
+hare_stats <- bonanza_hares %>% 
+  group_by(sex) %>% 
+  summarize(mean_weight = mean(weight, na.rm = TRUE),
+            sd_weight = sd(weight, na.rm = TRUE),
+            sample_size = n()) %>% 
+  filter(sex != "") # remove na row
+  
+hare_stats %>% 
+  kable(col.names = c("sex",
+                      "mean weight (g)",
+                      "standard deviation (g)",
+                      "sample size"),
+        caption = "Table 2: Mean weights with standard deviation of Bonanza Hares") %>% 
+  kable_classic(full_width = FALSE)
+
+hare_stats_1 <- bonanza_hares %>% 
+  select(sex, weight) %>%
+  filter(sex != "") 
+
+hare_stats_2 <- hare_stats_1 %>% 
+  separate(data = hare_stats_1,
+           col = sex,
+           into = c("female", "male"),
+           )
+
+
+
+
+mean_difference = hare_stats$mean_weight[1] - hare_stats$mean_weight[2]
+cohen = cohen.d
+
+```
+
 
