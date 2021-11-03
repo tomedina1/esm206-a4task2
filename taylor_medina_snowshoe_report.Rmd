@@ -1,0 +1,12 @@
+---
+title: "Task 2 - Juvenile Snowshoe Hares in Bonanza Creek Experimental Forest"
+author: "Taylor Medina"
+date: "11/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+```
+
