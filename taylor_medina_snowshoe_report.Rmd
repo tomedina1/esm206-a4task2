@@ -109,17 +109,10 @@ hare_stats_1 <- bonanza_hares %>%
   select(sex, weight) %>%
   filter(sex != "") 
 
-hare_stats_2 <- hare_stats_1 %>% 
-  separate(data = hare_stats_1,
-           col = sex,
-           into = c("female", "male"),
-           )
-
 
 
 
 mean_difference = hare_stats$mean_weight[1] - hare_stats$mean_weight[2]
-cohen = cohen.d
 
 ```
 
