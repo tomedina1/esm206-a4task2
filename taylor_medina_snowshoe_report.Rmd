@@ -104,16 +104,43 @@ hare_stats %>%
                       "sample size"),
         caption = "Table 2: Mean weights with standard deviation of Bonanza Hares") %>% 
   kable_classic(full_width = FALSE)
-
-hare_stats_1 <- bonanza_hares %>% 
-  select(sex, weight) %>%
-  filter(sex != "") 
-
-
-
-
-mean_difference = hare_stats$mean_weight[1] - hare_stats$mean_weight[2]
-
 ```
 
+```{r, include = FALSE}
+hare_stats_1 <- bonanza_hares %>% 
+  group_by(sex) %>% 
+  summarize(weight = weight) 
+
+ggplot(data = hare_stats_1, aes(x = weight)) +
+  geom_bar() + 
+  facet_wrap(~ sex)
+
+ggplot(data = hare_stats_1, aes(sample = weight)) +
+  stat_qq() +
+  stat_qq_line() +
+  facet_wrap(~ sex)
+```
+
+```{r}
+female_hares <- subset(hare_stats_1, sex == "f") %>% 
+  na.omit() # omit na values
+
+male_hares <- subset(hare_stats_1, sex == "m") %>% 
+  na.omit() # omit na values
+
+mean_diff = hare_stats$mean_weight[1] - hare_stats$mean_weight[2] # calculates difference in mean female vs. male height
+cohen <- cohen.d(female_hares$weight, male_hares$weight) # performs a cohen D test to get the effect size
+ttest <- t.test(female_hares$weight, male_hares$weight) # performs an unpaired 2-sample t-test
+
+hare_analysis <- as.data.frame(t(c(mean_diff, cohen$estimate, ttest$p.value))) # puts results into a data frame
+
+hare_analysis %>% 
+  kable(col.names = c("means difference",
+                      "effect size",
+                      "p-value"),
+        caption = "Table 3: Statistical Analysis of Juvenile Hare Weights by Gender") %>% 
+  footnote(number = c("The effect size was found using a Cohen D test", 
+           "The p-value was found using a standard unpaired two-sample t-test")) %>% 
+  kable_classic(full_width = FALSE)
+```
 
