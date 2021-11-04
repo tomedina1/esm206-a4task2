@@ -135,12 +135,37 @@ ttest <- t.test(female_hares$weight, male_hares$weight) # performs an unpaired 2
 hare_analysis <- as.data.frame(t(c(mean_diff, cohen$estimate, ttest$p.value))) # puts results into a data frame
 
 hare_analysis %>% 
-  kable(col.names = c("means difference",
+  kable(col.names = c("means difference (g)",
                       "effect size",
                       "p-value"),
         caption = "Table 3: Statistical Analysis of Juvenile Hare Weights by Gender") %>% 
   footnote(number = c("The effect size was found using a Cohen D test", 
            "The p-value was found using a standard unpaired two-sample t-test")) %>% 
   kable_classic(full_width = FALSE)
+```
+
+## Juvenile Weight vs. Hind Foot Length
+```{r}
+hare_foot <- bonanza_hares %>% 
+  select(sex, weight, hindft)
+
+foot_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
+  geom_point() +
+  scale_x_continuous(expand = c(0,0)) +
+  theme_classic() +
+  labs(x = "weight (g)",
+       y = "hind foot length (mm)") 
+                      
+ggplotly(foot_plot)                
+```
+
+```{r}
+hare_lm <- lm(hindft ~ weight, data = hare_foot)
+
+lm_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red")
+
+ggplotly(lm_plot)
 ```
 
