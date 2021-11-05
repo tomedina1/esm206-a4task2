@@ -13,6 +13,7 @@ library(kableExtra)
 library(lubridate)
 library(plotly)
 library(effsize)
+library(broom)
 ```
 
 ## Juvenile Hare Investigation
@@ -45,7 +46,6 @@ hare_summary <- hare_trappings %>%
             median_trap = median(trappings),
             max_trap = max(trappings),
             min_trap = min(trappings))
- 
 
 hare_summary %>% 
 kable(col.names = c("mean",
@@ -160,12 +160,35 @@ ggplotly(foot_plot)
 ```
 
 ```{r}
-hare_lm <- lm(hindft ~ weight, data = hare_foot)
+hare_lm <- lm(hindft ~ weight, data = hare_foot) # performs ordinary least squares regression
 
 lm_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
   geom_point() +
-  geom_smooth(method = "lm", color = "red")
+  geom_smooth(method = "lm", color = "red", linewidth = 0.5, se = FALSE) +
+  scale_x_continuous(expand = c(0,0)) +
+  theme_classic() +
+  labs(x = "weight (g)",
+       y = "hind foot length (mm)")
 
 ggplotly(lm_plot)
 ```
+
+```{r}
+lm_tidy <- tidy(hare_lm)
+
+lm_glance <- glance(hare_lm) %>% 
+  mutate(slope = lm_tidy$estimate[1], # extracts slope value from model fit
+         intercept = lm_tidy$estimate[2], # extracts intercept value from model fit
+         pearson = sqrt(adj.r.squared)) %>% # calculates Pearson Correlation
+  select(slope, intercept, adj.r.squared, pearson)
+
+lm_glance %>% 
+  kable(col.names = c("slope",
+                      "intercept",
+                      "$R^2$",
+                      "Pearson's correlation")) %>% 
+  kable_classic(full_width = FALSE)
+```
+
+
 
