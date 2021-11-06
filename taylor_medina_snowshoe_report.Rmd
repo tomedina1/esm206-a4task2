@@ -1,8 +1,12 @@
 ---
-title: "Task 2 - Juvenile Snowshoe Hares in Bonanza Creek Experimental Forest"
+title: "Juvenile Snowshoe Hares in the Bonanza Creek Experimental Forest"
 author: "Taylor Medina"
 date: "11/2/2021"
-output: html_document
+output: 
+  html_document: 
+    toc: yes
+    theme: paper
+    number_sections: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -14,9 +18,14 @@ library(lubridate)
 library(plotly)
 library(effsize)
 library(broom)
+library(equatiomatic)
 ```
 
-## Juvenile Hare Investigation
+# Introduction
+
+# Data and Analyses
+# Juvenile Hare Investigation
+## Annual Juvenile Hare Trap Counts
 ```{r, message = FALSE}
 bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
 
@@ -38,26 +47,21 @@ hare_plot <- ggplot(data = hare_trappings,
 
 ggplotly(hare_plot)
 ```
+**Figure 1:** Time series plot of the total number of hare-trappings performed from 1998 - 2012
 
 ```{r}
 hare_summary <- hare_trappings %>% 
-  summarize(mean_trap = mean(trappings),
-            sd_trap = sd(trappings),
+  summarize(mean_trap = round(mean(trappings), 0),
+            sd_trap = round(sd(trappings), 0),
             median_trap = median(trappings),
             max_trap = max(trappings),
             min_trap = min(trappings))
-
-hare_summary %>% 
-kable(col.names = c("mean",
-                    "standard deviation",
-                    "median",
-                    "maximum",
-                    "minimum"),
-      caption = "Table 1: Statistical Summary of the number of trappings of Bonanza Hares from 1998-2012") %>% 
-kable_classic(full_width = FALSE)
 ```
 
-## Visualizing Juvenile Hare Weights
+The maximum number of trappings per year is `r hare_summary$max_trap` which was done in 2009. The minimum number of trappings per year is `r hare_summary$min_trap` which was done in 2002. The average number of trappings done per year over the experiment is `r hare_summary$mean_trap` and the median number of trappings is `r hare_summary$median_trap`. There are random amount of trappings performed per year and there are no years with the same amount of trappings. This could be due to the difficulty of trapping young hares or seasonal variability in their populations. To standardize the experiment a bit better, the same number of traps and the same time-frames for the trappings should be done every year in order to account for population variance over different seasons and decrease the likelihood of having such a high sampling range depending on the year,
+
+
+## Visualize Juvenile Hare Weights
 ```{r, message = FALSE}
 hare_weights <- bonanza_hares %>% 
   group_by(grid, sex) %>% 
@@ -80,30 +84,38 @@ weight_plot <- ggplot(data = hare_weights,
   theme_classic() +
   scale_y_continuous(expand = c(0,1)) +
   scale_x_discrete(labels = x_axis) + # manually define x-axis
+  theme(legend.position = "none") +
   labs(x = "sex",
-       y = "mass (g)",
-       fill = "sex")
+       y = "mass (g)")
   
 
 ggplotly(weight_plot)
 ```
+**Figure 2:** Bar chart comparing the average masses of female, male, and unknown gendered juvenile hares. The error bars represent the standard deviation of the sample masses. NA represents an unknown gender.
 
-## Statistics of Juvenile Hare Weights
+Overall, according to **Figure 2**, there is no clear indication on which gender is heavier. In the Bonanza Lowland site, females are lighter than males and unknown gendered hares, with NA hares having a higher variation in their masses. IN the Bonanza Mature site, males hare the heaviest but both females and unkown gendered hares have higher variances in their masses. In the Bonanza Riparian site, females have the largest mass while unknown gendered hares have the most variance. 
+
+## Juvenile Weight Comparison
 ```{r}
 hare_stats <- bonanza_hares %>% 
   group_by(sex) %>% 
-  summarize(mean_weight = mean(weight, na.rm = TRUE),
-            sd_weight = sd(weight, na.rm = TRUE),
+  summarize(mean_weight = round(mean(weight, na.rm = TRUE), 1),
+            sd_weight = round(sd(weight, na.rm = TRUE), 2),
             sample_size = n()) %>% 
-  filter(sex != "") # remove na row
+  filter(sex != "") %>% # remove na row
+  mutate(sex = case_when(
+    sex == "f" ~ "female",
+    sex == "m" ~ "male"))
+
   
-hare_stats %>% 
+hare_stats %>%
   kable(col.names = c("sex",
                       "mean weight (g)",
                       "standard deviation (g)",
                       "sample size"),
-        caption = "Table 2: Mean weights with standard deviation of Bonanza Hares") %>% 
-  kable_classic(full_width = FALSE)
+        caption = "Table 1: Mean weights with standard deviation of Bonanza Hares") %>% 
+  kable_classic(full_width = FALSE) %>% 
+  row_spec(0:2, align = "center")
 ```
 
 ```{r, include = FALSE}
@@ -133,18 +145,11 @@ cohen <- cohen.d(female_hares$weight, male_hares$weight) # performs a cohen D te
 ttest <- t.test(female_hares$weight, male_hares$weight) # performs an unpaired 2-sample t-test
 
 hare_analysis <- as.data.frame(t(c(mean_diff, cohen$estimate, ttest$p.value))) # puts results into a data frame
-
-hare_analysis %>% 
-  kable(col.names = c("means difference (g)",
-                      "effect size",
-                      "p-value"),
-        caption = "Table 3: Statistical Analysis of Juvenile Hare Weights by Gender") %>% 
-  footnote(number = c("The effect size was found using a Cohen D test", 
-           "The p-value was found using a standard unpaired two-sample t-test")) %>% 
-  kable_classic(full_width = FALSE)
 ```
 
-## Juvenile Weight vs. Hind Foot Length
+Female juvenile hares have a slightly higher mean mass than male hares according to **Table 1**, with the difference in these mean masses being `r round(mean_diff,1)` grams. To determine if this difference was statistically significantly, a standard unpaired two sample t-test was performed. The null hypothesis was that the mean mass of females and males is the same. The alternate hypothesis is that the mean mass of females and males is different. The t-test was performed and a p-value of `r round(ttest$p.value, 3)` was found, meaning there is a `r round(ttest$p.value * 100, 3)`% chance that two samples of different gender juvenile hares would have a difference in means of at least `r round(mean_diff, 1)`, assuming the two samples are from the sample population.
+
+## Relationship between juvenile weight & hind foot length
 ```{r, warning = FALSE}
 hare_foot <- bonanza_hares %>% 
   select(sex, weight, hindft)
@@ -158,22 +163,11 @@ foot_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
                       
 ggplotly(foot_plot)                
 ```
+**Figure 3:** Scatterplot showing the relationship between hare weight in grams compared to their hind foot length in millimeters.
 
 ```{r, warning = FALSE, message = FALSE}
 hare_lm <- lm(hindft ~ weight, data = hare_foot) # performs ordinary least squares regression
 
-lm_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red", linewidth = 0.5, se = FALSE) +
-  scale_x_continuous(expand = c(0,0)) +
-  theme_classic() +
-  labs(x = "weight (g)",
-       y = "hind foot length (mm)")
-
-ggplotly(lm_plot)
-```
-
-```{r}
 lm_tidy <- tidy(hare_lm)
 
 lm_glance <- glance(hare_lm) %>% 
@@ -184,13 +178,18 @@ lm_glance <- glance(hare_lm) %>%
 
 lm_glance %>%
   round(4) %>% 
-  kable(col.names = c("slope",
-                      "intercept",
+  kable(col.names = c("intercept",
+                      "slope",
                       "$R^2$",
-                      "Pearson's correlation"),
-        caption = "Table 4: Ordinary Least Squares Regression Summary ") %>% 
-  kable_classic(full_width = FALSE)
+                      "Pearson correlation"),
+        caption = "Table 2: Ordinary Least Squares Regression Summary ") %>% 
+  kable_classic(full_width = FALSE) %>% 
+  row_spec(0:1, align = "center")
 ```
 
+```{r}
+extract_eq(model = hare_lm, use_coefs = TRUE)
+```
 
-
+# Conclusion
+# Citations
