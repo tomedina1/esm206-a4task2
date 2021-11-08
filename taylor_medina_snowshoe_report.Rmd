@@ -24,6 +24,8 @@ library(equatiomatic)
 # Introduction
 
 # Data and Analyses
+
+
 # Juvenile Hare Investigation
 ## Annual Juvenile Hare Trap Counts
 ```{r, message = FALSE}
@@ -152,7 +154,8 @@ Female juvenile hares have a slightly higher mean mass than male hares according
 ## Relationship between juvenile weight & hind foot length
 ```{r, warning = FALSE}
 hare_foot <- bonanza_hares %>% 
-  select(sex, weight, hindft)
+  select(sex, weight, hindft) %>% 
+  na.omit()
 
 foot_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
   geom_point() +
@@ -165,31 +168,49 @@ ggplotly(foot_plot)
 ```
 **Figure 3:** Scatterplot showing the relationship between hare weight in grams compared to their hind foot length in millimeters.
 
+```{r, message = FALSE, warning = FALSE}
+lm_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_y_continuous(expand = c(0,0)) +
+  theme_classic() +
+  labs(x = "weight (g)",
+       y = "hind foot length (mm)")
+
+ggplotly(lm_plot)
+```
+**Figure 4:** Ordinary Least Squares Regression showing the relationship between hare weight in grams and hind foot length in millimeters.
+
 ```{r, warning = FALSE, message = FALSE}
 hare_lm <- lm(hindft ~ weight, data = hare_foot) # performs ordinary least squares regression
 
 lm_tidy <- tidy(hare_lm)
 
 lm_glance <- glance(hare_lm) %>% 
-  mutate(slope = lm_tidy$estimate[1], # extracts slope value from model fit
-         intercept = lm_tidy$estimate[2], # extracts intercept value from model fit
-         pearson = sqrt(adj.r.squared)) %>% # calculates Pearson Correlation
+  mutate(intercept = round(lm_tidy$estimate[1],2), # extracts slope value from model fit
+         slope = round(lm_tidy$estimate[2],3), # extracts intercept value from model fit
+         pearson = cor(hare_foot[3], hare_foot[2], method = "pearson")) %>% # calculates Pearson Correlation
   select(slope, intercept, adj.r.squared, pearson)
 
 lm_glance %>%
-  round(4) %>% 
-  kable(col.names = c("intercept",
-                      "slope",
+  kable(col.names = c("slope",
+                      "intercept",
                       "$R^2$",
                       "Pearson correlation"),
-        caption = "Table 2: Ordinary Least Squares Regression Summary ") %>% 
+        caption = "Table 2: Linear Regression Summary ") %>% 
   kable_classic(full_width = FALSE) %>% 
   row_spec(0:1, align = "center")
 ```
 
+```{r, include = FALSE}
+plot(hare_lm)
+```
+The linear model that displays the relationship between the weight of a hare and its hind foot length is shown below:
 ```{r}
 extract_eq(model = hare_lm, use_coefs = TRUE)
 ```
+A slope ($\beta_1$) of `r lm_glance$slope` with units of $\frac{mm}{g}$ shows that for each unit increase in weight, the hind foot length of the hare will increase by `r lm_glance$slope` mm. An intercept ($\beta_0$) of `r lm_glance$intercept` shows that, though impossible, a hare with a mass of 0 would have a hind foot length of `r lm_glance$intercept` mm. The outcome of the linear regression displayed a weak linear relationship between the weight of a hare and its' hind foot length. Only `r lm_glance$adj.r.squared * 100`% of the variation in the scatter plot could be explained by the model according to **Table 4**. The Pearson Correlation of `r lm_glance$pearson` shows that there is a moderate positive correlation between weight and hind foot length. Assumptions of homoscedasticity is of concern in this model as the residuals are not relatively constant in the model. Additionally, the assumption that the distribution of errors is normally distributed is of concern here. Furthermore, based off of the scatter plot, the data does not seem to follow a linear relationship. 
 
 # Conclusion
+
 # Citations
