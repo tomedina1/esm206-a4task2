@@ -29,7 +29,8 @@ library(equatiomatic)
 # Juvenile Hare Investigation
 ## Annual Juvenile Hare Trap Counts
 ```{r, message = FALSE}
-bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
+bonanza_hares <- read_csv(here("data", "bonanza_hares.csv")) %>% 
+  filter(age == "j")
 
 hare_trappings <- bonanza_hares %>% 
   mutate(date = mdy(date), # convert class of date column
@@ -64,7 +65,7 @@ The maximum number of trappings per year is `r hare_summary$max_trap` which was 
 
 
 ## Visualize Juvenile Hare Weights
-```{r, message = FALSE}
+```{r, message = FALSE, warning = FALSE}
 hare_weights <- bonanza_hares %>% 
   group_by(grid, sex) %>% 
   summarize(mean_weight = mean(weight, na.rm = TRUE),
@@ -95,7 +96,7 @@ ggplotly(weight_plot)
 ```
 **Figure 2:** Bar chart comparing the average masses of female, male, and unknown gendered juvenile hares. The error bars represent the standard deviation of the sample masses. NA represents an unknown gender.
 
-Overall, according to **Figure 2**, there is no clear indication on which gender is heavier. In the Bonanza Lowland site, females are lighter than males and unknown gendered hares, with NA hares having a higher variation in their masses. IN the Bonanza Mature site, males hare the heaviest but both females and unkown gendered hares have higher variances in their masses. In the Bonanza Riparian site, females have the largest mass while unknown gendered hares have the most variance. 
+Overall, according to **Figure 2**, there is no clear indication on which gender is heavier. In the Bonanza Lowland site, females are lighter than males and there was not enough data in this site to get a mean for unknown gendered hares. There was only one sample collected and there was no mass measurement. In the Bonanza Mature site, males hare the heaviest but both females and unknown gendered hares have higher variances in their masses. In the Bonanza Riparian site, females have the largest mass while unknown gendered hares have the most variance. 
 
 ## Juvenile Weight Comparison
 ```{r}
@@ -209,6 +210,7 @@ The linear model that displays the relationship between the weight of a hare and
 ```{r}
 extract_eq(model = hare_lm, use_coefs = TRUE)
 ```
+
 A slope ($\beta_1$) of `r lm_glance$slope` with units of $\frac{mm}{g}$ shows that for each unit increase in weight, the hind foot length of the hare will increase by `r lm_glance$slope` mm. An intercept ($\beta_0$) of `r lm_glance$intercept` shows that, though impossible, a hare with a mass of 0 would have a hind foot length of `r lm_glance$intercept` mm. The outcome of the linear regression displayed a weak linear relationship between the weight of a hare and its' hind foot length. Only `r lm_glance$adj.r.squared * 100`% of the variation in the scatter plot could be explained by the model according to **Table 4**. The Pearson Correlation of `r lm_glance$pearson` shows that there is a moderate positive correlation between weight and hind foot length. Assumptions of homoscedasticity is of concern in this model as the residuals are not relatively constant in the model. Additionally, the assumption that the distribution of errors is normally distributed is of concern here. Furthermore, based off of the scatter plot, the data does not seem to follow a linear relationship. 
 
 # Conclusion
