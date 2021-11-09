@@ -143,24 +143,24 @@ female_hares <- subset(hare_stats_1, sex == "f") %>%
 male_hares <- subset(hare_stats_1, sex == "m") %>% 
   na.omit() # omit na values
 
-mean_diff = hare_stats$mean_weight[1] - hare_stats$mean_weight[2] # calculates difference in mean female vs. male height
+mean_diff = hare_stats$mean_weight[2] - hare_stats$mean_weight[1] # calculates difference in mean female vs. male height
 cohen <- cohen.d(female_hares$weight, male_hares$weight) # performs a cohen D test to get the effect size
 ttest <- t.test(female_hares$weight, male_hares$weight) # performs an unpaired 2-sample t-test
 
 hare_analysis <- as.data.frame(t(c(mean_diff, cohen$estimate, ttest$p.value))) # puts results into a data frame
 ```
 
-Female juvenile hares have a slightly higher mean mass than male hares according to **Table 1**, with the difference in these mean masses being `r round(mean_diff,1)` grams. To determine if this difference was statistically significantly, a standard unpaired two sample t-test was performed. The null hypothesis was that the mean mass of females and males is the same. The alternate hypothesis is that the mean mass of females and males is different. The t-test was performed and a p-value of `r round(ttest$p.value, 3)` was found, meaning there is a `r round(ttest$p.value * 100, 3)`% chance that two samples of different gender juvenile hares would have a difference in means of at least `r round(mean_diff, 1)`, assuming the two samples are from the sample population.
+Male juvenile hares have a slightly higher mean mass than female hares according to **Table 1**, with the difference in these mean masses being `r round(mean_diff,1)` grams. To determine if this difference was statistically significantly, a standard unpaired two sample t-test was performed. The null hypothesis was that the mean mass of females and males is the same. The alternate hypothesis is that the mean mass of females and males is different. The t-test was performed and a p-value of `r round(ttest$p.value, 3)` was found, meaning there is a `r round(ttest$p.value * 100, 3)`% chance that two samples of different gender juvenile hares would have a difference in means of at least `r round(mean_diff, 1)`, assuming the two samples are from the sample population.
 
 ## Relationship between juvenile weight & hind foot length
 ```{r, warning = FALSE}
 hare_foot <- bonanza_hares %>% 
-  select(sex, weight, hindft) %>% 
+  select(sex, weight, hindft, age) %>% 
+  filter(age == "j") %>% 
   na.omit()
 
 foot_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
   geom_point() +
-  scale_x_continuous(expand = c(0,0)) +
   theme_classic() +
   labs(x = "weight (g)",
        y = "hind foot length (mm)") 
@@ -173,7 +173,6 @@ ggplotly(foot_plot)
 lm_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
-  scale_y_continuous(expand = c(0,0)) +
   theme_classic() +
   labs(x = "weight (g)",
        y = "hind foot length (mm)")
