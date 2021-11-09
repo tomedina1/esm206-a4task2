@@ -94,9 +94,9 @@ weight_plot <- ggplot(data = hare_weights,
 
 ggplotly(weight_plot)
 ```
-**Figure 2:** Bar chart comparing the average masses of female, male, and unknown gendered juvenile hares. The error bars represent the standard deviation of the sample masses. NA represents an unknown gender.
+**Figure 2:** Bar chart comparing the average masses of female (red), male (blue), and unknown sex juvenile hares (grey). The error bars represent the standard deviation of the sample masses. NA represents an unknown gender.
 
-Overall, according to **Figure 2**, there is no clear indication on which gender is heavier. In the Bonanza Lowland site, females are lighter than males and there was not enough data in this site to get a mean for unknown gendered hares. There was only one sample collected and there was no mass measurement. In the Bonanza Mature site, males hare the heaviest but both females and unknown gendered hares have higher variances in their masses. In the Bonanza Riparian site, females have the largest mass while unknown gendered hares have the most variance. 
+Overall, according to **Figure 2**, male juvenile hares have the highest weight. In the Bonanza Lowland site, females are lighter than males and there was not enough data in this site to get a mean for unknown sex hares. There was only one sample collected and there was no mass measurement. In the Bonanza Mature site, male hares are the heaviest and have a higher standard deviation than females and unknown sex hares. In the Bonanza Riparian site, males again have the highest mass and the highest standard deviation.
 
 ## Juvenile Weight Comparison
 ```{r}
@@ -123,6 +123,7 @@ hare_stats %>%
 
 ```{r, include = FALSE}
 hare_stats_1 <- bonanza_hares %>% 
+  filter(age == "j") %>% 
   group_by(sex) %>% 
   summarize(weight = weight) 
 
@@ -150,7 +151,7 @@ ttest <- t.test(female_hares$weight, male_hares$weight) # performs an unpaired 2
 hare_analysis <- as.data.frame(t(c(mean_diff, cohen$estimate, ttest$p.value))) # puts results into a data frame
 ```
 
-Male juvenile hares have a slightly higher mean mass than female hares according to **Table 1**, with the difference in these mean masses being `r round(mean_diff,1)` grams. To determine if this difference was statistically significantly, a standard unpaired two sample t-test was performed. The null hypothesis was that the mean mass of females and males is the same. The alternate hypothesis is that the mean mass of females and males is different. The t-test was performed and a p-value of `r round(ttest$p.value, 3)` was found, meaning there is a `r round(ttest$p.value * 100, 3)`% chance that two samples of different gender juvenile hares would have a difference in means of at least `r round(mean_diff, 1)`, assuming the two samples are from the sample population.
+Male juvenile hares have a slightly higher mean mass than female hares according to **Table 1**, with the difference in these mean masses being `r round(mean_diff,1)` grams. To determine if this difference was statistically significantly, a standard unpaired two sample t-test was performed. The null hypothesis was that the difference in means between males and females is 0. The alternate hypothesis is that the difference in mean masses is not 0. The t-test was performed and a p-value of `r round(ttest$p.value, 3)` (effect size = `r abs(round(cohen$estimate,4))`) was found, meaning there is a `r round(ttest$p.value * 100, 3)`% chance that two samples of different gender juvenile hares would have a difference in means of at least `r round(mean_diff, 1)`, assuming the two samples are from the sample population. With such a low p-value, the null hypothesis is rejected since it is below the selected confidence interval ($\alpha$ = 0.05), meaning that the male population is heavier than the female population.
 
 ## Relationship between juvenile weight & hind foot length
 ```{r, warning = FALSE}
@@ -187,12 +188,13 @@ hare_lm <- lm(hindft ~ weight, data = hare_foot) # performs ordinary least squar
 lm_tidy <- tidy(hare_lm)
 
 lm_glance <- glance(hare_lm) %>% 
-  mutate(intercept = round(lm_tidy$estimate[1],2), # extracts slope value from model fit
-         slope = round(lm_tidy$estimate[2],3), # extracts intercept value from model fit
+  mutate(beta_0 = lm_tidy$estimate[1], # extracts intercept value from model fit
+         beta_1 = lm_tidy$estimate[2], # extracts slope value from model fit
          pearson = cor(hare_foot[3], hare_foot[2], method = "pearson")) %>% # calculates Pearson Correlation
-  select(slope, intercept, adj.r.squared, pearson)
+  select(beta_1, beta_0, adj.r.squared, pearson)
 
 lm_glance %>%
+  round(4) %>% 
   kable(col.names = c("slope",
                       "intercept",
                       "$R^2$",
@@ -213,5 +215,8 @@ extract_eq(model = hare_lm, use_coefs = TRUE)
 A slope ($\beta_1$) of `r lm_glance$slope` with units of $\frac{mm}{g}$ shows that for each unit increase in weight, the hind foot length of the hare will increase by `r lm_glance$slope` mm. An intercept ($\beta_0$) of `r lm_glance$intercept` shows that, though impossible, a hare with a mass of 0 would have a hind foot length of `r lm_glance$intercept` mm. The outcome of the linear regression displayed a weak linear relationship between the weight of a hare and its' hind foot length. Only `r lm_glance$adj.r.squared * 100`% of the variation in the scatter plot could be explained by the model according to **Table 4**. The Pearson Correlation of `r lm_glance$pearson` shows that there is a moderate positive correlation between weight and hind foot length. Assumptions of homoscedasticity is of concern in this model as the residuals are not relatively constant in the model. Additionally, the assumption that the distribution of errors is normally distributed is of concern here. Furthermore, based off of the scatter plot, the data does not seem to follow a linear relationship. 
 
 # Conclusion
+From the analysis of the hare weights by gender, there was a large variation in the average weights of each sex in each sampling site, but overall the male juvenile hares have the highest weight. The average weight (in grams) of the captured juvenile male hares is `r hare_stats$mean_weight[2]` and for females is `r hare_stats$mean_weight[1]` with the mean difference being `r mean_diff`. From performing a two sample unpaired t-test,  p-value of `r round(ttest$p.value, 3)` (effect size = `r abs(round(cohen$estimate,4))`) was found, which is smaller than the confidence level of 0.05, rejecting the null hypothesis that the difference in mean masses of males and females is 0, meaning that males are heavier than females overall. 
+The regression analysis of the relationship between the weight of a hare and its hind foot length showed a weak positive linear correlation with the linear model having an $R^2$ = `r round(lm_glance$adj.r.squared,3)`, which means almost 75% of the variance is not accounted for by the linear model. The final conclusion for this analysis is that there is not a linear relationship between hare weight and foot length, meaning there are other factors that influence this length or there is another model fit that would fit better.
 
-# Citations
+# Data Citation
+Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative
