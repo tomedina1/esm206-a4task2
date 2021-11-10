@@ -25,7 +25,7 @@ library(equatiomatic)
 This report provides an exploratory analysis of juvenile snowshoe hares in the Bonanza Creek experimental forest in Alaska  observed from 1999 - 2012, provided by the work of Dr. Knut Kielland (Kielland et. al. 2017.). A statistical analysis is provided of the number of juvenile hare trappings performed for each year of the study, as well as analysis on the relationship between site and gender on the weight of a hare, as well as a linear regression analysis on the relationship between the mass of the hare and its hind foot length. 
 
 # Data and Analyses
-The Bonanza Hares data set provided by Dr. Kielland (Kielland et. al. 2017) contains data on hare trappings in three different sites in the Bonanza Creek: Riparian forest, Mature Forest, and Lowlands. The hare trapping information contains data on the time and date of the trapping, the trap-specific id, as well as the sex, age, ear length, and the hind-foot length of the hare. The trappings took place from 1999 - 2012. For the exploratory data visualization, mean masses between female and male juvenile hares were compared using a standard 2-sample unpaired t-test with an $\alpha$ = 0.05. Differences between the f=
+The Bonanza Hares data set provided by Dr. Kielland (Kielland et. al. 2017) contains data on hare trappings in three different sites in the Bonanza Creek: Riparian forest, Mature Forest, and Lowlands. The hare trapping information contains data on the time and date of the trapping, the trap-specific id, as well as the sex, age, ear length, and the hind-foot length of the hare. The trappings took place from 1999 - 2012. For the exploratory data visualization, mean masses between female and male juvenile hares were compared using a standard 2-sample unpaired t-test with an $\alpha$ = 0.05. The relationship between weight and hind foot length was explored using a simple ordinary least squares regression. All analyses are on R Version 4.0.2. using RStudio Version 1.4.1717.
 
 # Juvenile Hare Investigation
 ## Annual Juvenile Hare Trap Counts
@@ -51,7 +51,7 @@ hare_plot <- ggplot(data = hare_trappings,
 
 ggplotly(hare_plot)
 ```
-**Figure 1:** Time series plot of the total number of hare-trappings performed from 1998 - 2012
+**Figure 1:** Time series plot of the total number of hare-trappings performed from 1998 - 2012 (Data: Kielland et al. 2017)
 
 ```{r}
 hare_summary <- hare_trappings %>% 
@@ -95,7 +95,7 @@ weight_plot <- ggplot(data = hare_weights,
 
 ggplotly(weight_plot)
 ```
-**Figure 2:** Bar chart comparing the average masses of female (red), male (blue), and unknown sex juvenile hares (grey). The error bars represent the standard deviation of the sample masses. NA represents an unknown gender.
+**Figure 2:** Bar chart comparing the average masses of female (red), male (blue), and unknown sex juvenile hares (grey). The error bars represent the standard deviation of the sample masses. NA represents an unknown gender. (Data: Kielland et al. 2017)
 
 Overall, according to **Figure 2**, male juvenile hares have the highest weight compared to females and unknown sex juvenile hares. In the Bonanza Lowland site, females are lighter than males with a mass of `r hare_weights$mean_weight[1]` $\pm$  `r hare_weights$sd_weight[1]`g and `r hare_weights$mean_weight[2]` $\pm$  `r hare_weights$sd_weight[2]` g respectively. There was not enough data in this site to get a mean for unknown sex hares. There was only one sample collected and there was no mass measurement. In the Bonanza Mature site, male hares have a mass of `r hare_weights$mean_weight[5]` $\pm$  `r hare_weights$sd_weight[5]` g which is higher than females with a mass of `r hare_weights$mean_weight[4]` $\pm$  `r hare_weights$sd_weight[4]`g and unknown sex hares with a mass of `r hare_weights$mean_weight[6]` $\pm$  `r hare_weights$sd_weight[6]` g. In the Bonanza Riparian site, males are bigger with a mass of `r hare_weights$mean_weight[8]` $\pm$  `r hare_weights$sd_weight[8]` compared to females with a mass of `r hare_weights$mean_weight[7]` $\pm$  `r hare_weights$sd_weight[7]`g and unknown sex hares with a mass of `r hare_weights$mean_weight[9]` $\pm$  `r hare_weights$sd_weight[9]` g.
 
@@ -117,7 +117,7 @@ hare_stats %>%
                       "mean weight (g)",
                       "standard deviation (g)",
                       "sample size"),
-        caption = "Table 1: Mean weights with standard deviation of Bonanza Hares across all sampling sites") %>% 
+        caption = "Table 1: Mean weights with standard deviation of Bonanza Hares across all sampling sites (Data: Kielland et al. 2017)") %>% 
   kable_classic(full_width = FALSE) %>% 
   row_spec(0:2, align = "center")
 ```
@@ -151,7 +151,7 @@ ttest <- t.test(female_hares$weight, male_hares$weight) # performs an unpaired 2
 
 hare_analysis <- as.data.frame(t(c(mean_diff, cohen$estimate, ttest$p.value))) # puts results into a data frame
 ```
-
+The average weight for juvenile female hares across all three sites is `r hare_stats$mean_weight[1]` $\pm$ `r hare_stats$sd_weight[1]` and for males is `r hare_stats$mean_weight[2]` $\pm$ `r hare_stats$sd_weight[2]` (see Table 1).
 Male juvenile hares have a slightly higher mean mass than female hares according to **Table 1**, with the difference in these mean masses being `r round(mean_diff,1)` grams. To determine if this difference was statistically significantly, a standard unpaired two sample t-test was performed. The null hypothesis was that the difference in means between males and females is 0. The alternate hypothesis is that the difference in mean masses is not 0. The t-test was performed and a p-value of `r round(ttest$p.value, 3)` (effect size = `r abs(round(cohen$estimate,4))`) was found, meaning there is a `r round(ttest$p.value * 100, 3)`% chance that two samples of different gender juvenile hares would have a difference in means of at least `r round(mean_diff, 1)`, assuming the two samples are from the sample population. With such a low p-value, the null hypothesis is rejected since it is below the selected confidence interval ($\alpha$ = 0.05), meaning that the male population is heavier than the female population.
 
 ## Relationship between juvenile weight & hind foot length
@@ -169,7 +169,7 @@ foot_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
                       
 ggplotly(foot_plot)                
 ```
-**Figure 3:** Scatterplot showing the relationship between hare weight in grams compared to their hind foot length in millimeters.
+**Figure 3:** Scatterplot showing the relationship between hare weight in grams compared to their hind foot length in millimeters.(Data: Kielland et al. 2017)
 
 ```{r, message = FALSE, warning = FALSE}
 lm_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
@@ -181,7 +181,7 @@ lm_plot <- ggplot(data = hare_foot, aes(x = weight, y = hindft)) +
 
 ggplotly(lm_plot)
 ```
-**Figure 4:** Ordinary Least Squares Regression showing the relationship between hare weight in grams and hind foot length in millimeters.
+**Figure 4:** Ordinary Least Squares Regression showing the relationship between hare weight in grams and hind foot length in millimeters. (Data: Kielland et al. 2017)
 
 ```{r, warning = FALSE, message = FALSE}
 hare_lm <- lm(hindft ~ weight, data = hare_foot) # performs ordinary least squares regression
@@ -200,7 +200,7 @@ lm_glance %>%
                       "intercept",
                       "$R^2$",
                       "Pearson correlation"),
-        caption = "Table 2: Linear Regression Summary ") %>% 
+        caption = "Table 2: Linear Regression Summary (Data: Kielland et al. 2017) ") %>% 
   kable_classic(full_width = FALSE) %>% 
   row_spec(0:1, align = "center")
 ```
